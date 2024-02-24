@@ -1,143 +1,82 @@
 import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.spec.IvParameterSpec;
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.nio.charset.StandardCharsets;
+import java.awt.*;
+import java.awt.event.*;
 import java.util.Base64;
 
-public class EncryptionApp {
+public class EncryptionApp extends JFrame {
+    private JComboBox<String> encryptionMethodComboBox;
+    private JTextArea inputTextArea, outputTextArea;
+    private JButton encryptButton, decryptButton;
 
-    private JTextArea t1e, t1d, t2e, t2d;
-    private JButton encryptButton, decryptButton, changeEncryptMethodButton, changeDecryptMethodButton;
+    public EncryptionApp() {
+        setTitle("Encryption Decryption Tool");
+        setSize(400, 300);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
 
-    private SecretKey secretKey; // Key for encryption and decryption
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new EncryptionApp().createAndShowGUI());
-    }
-
-    private void createAndShowGUI() {
-        JFrame frame = new JFrame("Encryption App");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        // Create components
-        t1e = new JTextArea(5, 20);
-        t1d = new JTextArea(5, 20);
-        t2e = new JTextArea(5, 20);
-        t2d = new JTextArea(5, 20);
-        t2e.setEditable(false);
-        t2d.setEditable(false);
-
+        String[] encryptionMethods = { "AES", "RSA" };
+        encryptionMethodComboBox = new JComboBox<>(encryptionMethods);
+        inputTextArea = new JTextArea(5, 20);
+        outputTextArea = new JTextArea(5, 20);
+        outputTextArea.setEditable(false);
         encryptButton = new JButton("Encrypt");
-        encryptButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                encrypt();
-            }
-        });
-
         decryptButton = new JButton("Decrypt");
-        decryptButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                decrypt();
-            }
-        });
 
-        changeEncryptMethodButton = new JButton("Change Encrypt Method");
-        changeEncryptMethodButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Add logic for changing encryption method if needed
-                JOptionPane.showMessageDialog(frame, "Change Encrypt Method clicked!");
-            }
-        });
+        encryptButton.addActionListener(e -> encrypt());
+        decryptButton.addActionListener(e -> decrypt());
 
-        changeDecryptMethodButton = new JButton("Change Decrypt Method");
-        changeDecryptMethodButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Add logic for changing decryption method if needed
-                JOptionPane.showMessageDialog(frame, "Change Decrypt Method clicked!");
-            }
-        });
+        JPanel panel = new JPanel(new GridLayout(3, 2));
+        panel.add(new JLabel("Encryption Method:"));
+        panel.add(encryptionMethodComboBox);
+        panel.add(new JLabel("Input:"));
+        panel.add(new JScrollPane(inputTextArea));
+        panel.add(new JLabel("Output:"));
+        panel.add(new JScrollPane(outputTextArea));
 
-        // Set layout
-        GroupLayout layout = new GroupLayout(frame.getContentPane());
-        frame.getContentPane().setLayout(layout);
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(encryptButton);
+        buttonPanel.add(decryptButton);
 
-        layout.setAutoCreateGaps(true);
-        layout.setAutoCreateContainerGaps(true);
-
-        layout.setHorizontalGroup(layout.createParallelGroup()
-                .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                .addComponent(new JScrollPane(t1e))
-                                .addComponent(new JScrollPane(t2e))
-                                .addComponent(encryptButton)
-                                .addComponent(changeEncryptMethodButton))
-                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                .addComponent(new JScrollPane(t1d))
-                                .addComponent(new JScrollPane(t2d))
-                                .addComponent(decryptButton)
-                                .addComponent(changeDecryptMethodButton))));
-
-        layout.setVerticalGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(new JScrollPane(t1e))
-                        .addComponent(new JScrollPane(t1d)))
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(new JScrollPane(t2e))
-                        .addComponent(new JScrollPane(t2d)))
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(encryptButton)
-                        .addComponent(decryptButton))
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(changeEncryptMethodButton)
-                        .addComponent(changeDecryptMethodButton)));
-
-        // Pack and display the frame
-        frame.pack();
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-
-        // Generate a secret key for encryption and decryption
-        try {
-            secretKey = generateSecretKey();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private SecretKey generateSecretKey() throws Exception {
-        KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-        keyGenerator.init(128);
-        return keyGenerator.generateKey();
+        add(panel, BorderLayout.CENTER);
+        add(buttonPanel, BorderLayout.SOUTH);
     }
 
     private void encrypt() {
-        try {
-            String plainText = t1e.getText();
-            Cipher cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-            byte[] encryptedBytes = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
-            t2e.setText(Base64.getEncoder().encodeToString(encryptedBytes));
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        String method = (String) encryptionMethodComboBox.getSelectedItem();
+        String input = inputTextArea.getText();
+        String output;
+        if (method.equals("AES")) {
+            try {
+                Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                byte[] keyBytes = "1234567890123456".getBytes();
+                SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, "AES");
+                IvParameterSpec ivParameterSpec = new IvParameterSpec(keyBytes);
+                cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivParameterSpec);
+                byte[] encrypted = cipher.doFinal(input.getBytes());
+                output = Base64.getEncoder().encodeToString(encrypted);
+            } catch (Exception e) {
+                output = "Error: " + e.getMessage();
+            }
+        } else if (method.equals("RSA")) {
+            // Implement RSA encryption
+            output = "RSA encryption not implemented yet!";
+        } else {
+            output = "Invalid encryption method!";
         }
+        outputTextArea.setText(output);
     }
 
     private void decrypt() {
-        try {
-            String encryptedText = t1d.getText();
-            Cipher cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.DECRYPT_MODE, secretKey);
-            byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedText));
-            t2d.setText(new String(decryptedBytes, StandardCharsets.UTF_8));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        // Implement decryption
+        outputTextArea.setText("Decryption not implemented yet!");
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new EncryptionApp().setVisible(true);
+        });
     }
 }
