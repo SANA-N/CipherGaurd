@@ -1,20 +1,11 @@
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
-
+import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.security.*;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 public class EncryptionApp extends JFrame {
@@ -24,8 +15,8 @@ public class EncryptionApp extends JFrame {
     private KeyPair rsaKeyPair;
 
     public EncryptionApp() {
-        setTitle("CipherGaurd");
-        setSize(300, 200);
+        setTitle("CipherGuard");
+        setSize(400, 300);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         String[] encryptionMethods = { "AES", "RSA" };
@@ -36,18 +27,39 @@ public class EncryptionApp extends JFrame {
         encryptButton = new JButton("Encrypt");
         decryptButton = new JButton("Decrypt");
 
+        // Set fonts and colors
+        Font labelFont = new Font("Arial", Font.BOLD, 14);
+        Font textAreaFont = new Font("TimesNow", Font.PLAIN, 14);
+        Color panelColor = new Color(220, 220, 220);
+        Color buttonColor = new Color(0, 150, 0);
+        Color buttonTextColor = Color.BLACK;
+
+        encryptionMethodComboBox.setFont(textAreaFont);
+        inputTextArea.setFont(textAreaFont);
+        outputTextArea.setFont(textAreaFont);
+
+        encryptButton.setFont(labelFont);
+        encryptButton.setBackground(buttonColor);
+        encryptButton.setForeground(buttonTextColor);
+
+        decryptButton.setFont(labelFont);
+        decryptButton.setBackground(buttonColor);
+        decryptButton.setForeground(buttonTextColor);
+
         encryptButton.addActionListener(e -> encrypt());
         decryptButton.addActionListener(e -> decrypt());
 
         JPanel panel = new JPanel(new GridLayout(3, 2));
-        panel.add(new JLabel("Encryption Method:"));
+        panel.setBackground(panelColor);
+        panel.add(new JLabel("Encryption Method:")).setFont(labelFont);
         panel.add(encryptionMethodComboBox);
-        panel.add(new JLabel("Input:"));
+        panel.add(new JLabel("Input:")).setFont(labelFont);
         panel.add(new JScrollPane(inputTextArea));
-        panel.add(new JLabel("Output:"));
+        panel.add(new JLabel("Output:")).setFont(labelFont);
         panel.add(new JScrollPane(outputTextArea));
 
         JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(panelColor);
         buttonPanel.add(encryptButton);
         buttonPanel.add(decryptButton);
 
@@ -138,6 +150,11 @@ public class EncryptionApp extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             new EncryptionApp().setVisible(true);
         });
     }
