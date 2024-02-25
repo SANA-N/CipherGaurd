@@ -1,9 +1,22 @@
 import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import javax.swing.*;
+import javax.crypto.spec.SecretKeySpec;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+
 import java.awt.*;
 import java.awt.event.*;
+import java.security.*;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 public class EncryptionApp extends JFrame {
@@ -12,10 +25,9 @@ public class EncryptionApp extends JFrame {
     private JButton encryptButton, decryptButton;
 
     public EncryptionApp() {
-        setTitle("Encryption Decryption Tool");
-        setSize(400, 300);
+        setTitle("CipherGaurd");
+        setSize(300, 200);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
 
         String[] encryptionMethods = { "AES", "RSA" };
         encryptionMethodComboBox = new JComboBox<>(encryptionMethods);
@@ -48,6 +60,7 @@ public class EncryptionApp extends JFrame {
         String method = (String) encryptionMethodComboBox.getSelectedItem();
         String input = inputTextArea.getText();
         String output;
+
         if (method.equals("AES")) {
             try {
                 Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -61,17 +74,62 @@ public class EncryptionApp extends JFrame {
                 output = "Error: " + e.getMessage();
             }
         } else if (method.equals("RSA")) {
-            // Implement RSA encryption
-            output = "RSA encryption not implemented yet!";
+            try {
+                KeyPair keyPair = generateRSAKeyPair();
+                PublicKey publicKey = keyPair.getPublic();
+                Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+                cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+                byte[] encrypted = cipher.doFinal(input.getBytes());
+                output = Base64.getEncoder().encodeToString(encrypted);
+            } catch (Exception e) {
+                output = "Error: " + e.getMessage();
+            }
         } else {
             output = "Invalid encryption method!";
         }
+
         outputTextArea.setText(output);
     }
 
     private void decrypt() {
-        // Implement decryption
-        outputTextArea.setText("Decryption not implemented yet!");
+        String method = (String) encryptionMethodComboBox.getSelectedItem();
+        String input = inputTextArea.getText();
+        String output;
+
+        if (method.equals("AES")) {
+            try {
+                Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                byte[] keyBytes = "1234567890123456".getBytes();
+                SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, "AES");
+                IvParameterSpec ivParameterSpec = new IvParameterSpec(keyBytes);
+                cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
+                byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(input));
+                output = new String(decrypted);
+            } catch (Exception e) {
+                output = "Error: " + e.getMessage();
+            }
+        } else if (method.equals("RSA")) {
+            try {
+                KeyPair keyPair = generateRSAKeyPair();
+                PrivateKey privateKey = keyPair.getPrivate();
+                Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+                cipher.init(Cipher.DECRYPT_MODE, privateKey);
+                byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(input));
+                output = new String(decrypted);
+            } catch (Exception e) {
+                output = "Error: " + e.getMessage();
+            }
+        } else {
+            output = "Invalid encryption method!";
+        }
+
+        outputTextArea.setText(output);
+    }
+
+    private KeyPair generateRSAKeyPair() throws NoSuchAlgorithmException {
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+        keyPairGenerator.initialize(2048); // You can adjust the key size
+        return keyPairGenerator.genKeyPair();
     }
 
     public static void main(String[] args) {
