@@ -27,7 +27,6 @@ public class EncryptionApp extends JFrame {
         encryptButton = new JButton("Encrypt");
         decryptButton = new JButton("Decrypt");
 
-        // Set fonts and colors
         Font labelFont = new Font("Arial", Font.BOLD, 14);
         Font textAreaFont = new Font("TimesNow", Font.PLAIN, 14);
         Color panelColor = new Color(240, 235, 171);
@@ -69,7 +68,6 @@ public class EncryptionApp extends JFrame {
         add(panel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
 
-        // Generate RSA key pair once during application initialization
         try {
             rsaKeyPair = generateRSAKeyPair();
         } catch (NoSuchAlgorithmException e) {
@@ -147,7 +145,7 @@ public class EncryptionApp extends JFrame {
 
     private KeyPair generateRSAKeyPair() throws NoSuchAlgorithmException {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        keyPairGenerator.initialize(2048); // You can adjust the key size
+        keyPairGenerator.initialize(2048);
         return keyPairGenerator.genKeyPair();
     }
 
