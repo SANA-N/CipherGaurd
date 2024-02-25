@@ -30,11 +30,14 @@ public class EncryptionApp extends JFrame {
         // Set fonts and colors
         Font labelFont = new Font("Arial", Font.BOLD, 14);
         Font textAreaFont = new Font("TimesNow", Font.PLAIN, 14);
-        Color panelColor = new Color(220, 220, 220);
+        Color panelColor = new Color(240, 235, 171);
         Color buttonColor = new Color(0, 150, 0);
+        Color comboBoxColor = new Color(199, 227, 141);
         Color buttonTextColor = Color.BLACK;
 
         encryptionMethodComboBox.setFont(textAreaFont);
+        encryptionMethodComboBox.setBackground(comboBoxColor);
+
         inputTextArea.setFont(textAreaFont);
         outputTextArea.setFont(textAreaFont);
 
