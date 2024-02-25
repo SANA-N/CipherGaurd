@@ -1,6 +1,4 @@
 import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JButton;
@@ -23,6 +21,7 @@ public class EncryptionApp extends JFrame {
     private JComboBox<String> encryptionMethodComboBox;
     private JTextArea inputTextArea, outputTextArea;
     private JButton encryptButton, decryptButton;
+    private KeyPair rsaKeyPair;
 
     public EncryptionApp() {
         setTitle("CipherGaurd");
@@ -54,6 +53,13 @@ public class EncryptionApp extends JFrame {
 
         add(panel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
+
+        // Generate RSA key pair once during application initialization
+        try {
+            rsaKeyPair = generateRSAKeyPair();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
     }
 
     private void encrypt() {
@@ -75,8 +81,7 @@ public class EncryptionApp extends JFrame {
             }
         } else if (method.equals("RSA")) {
             try {
-                KeyPair keyPair = generateRSAKeyPair();
-                PublicKey publicKey = keyPair.getPublic();
+                PublicKey publicKey = rsaKeyPair.getPublic();
                 Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
                 cipher.init(Cipher.ENCRYPT_MODE, publicKey);
                 byte[] encrypted = cipher.doFinal(input.getBytes());
@@ -110,8 +115,7 @@ public class EncryptionApp extends JFrame {
             }
         } else if (method.equals("RSA")) {
             try {
-                KeyPair keyPair = generateRSAKeyPair();
-                PrivateKey privateKey = keyPair.getPrivate();
+                PrivateKey privateKey = rsaKeyPair.getPrivate();
                 Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
                 cipher.init(Cipher.DECRYPT_MODE, privateKey);
                 byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(input));
